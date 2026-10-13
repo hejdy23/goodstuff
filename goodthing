@@ -1,0 +1,246 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+local Enabled = false
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TweenerWeener"
+ScreenGui.ResetOnSpawn = false
+
+pcall(function()
+    ScreenGui.Parent = game.CoreGui
+end)
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 250, 0, 180)
+Main.Position = UDim2.new(0.5, -125, 0.5, -90)
+Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = Main
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Title.BorderSizePixel = 0
+Title.Text = "Tweener Weener"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.Parent = Main
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = Title
+
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -20, 0, 20)
+Status.Position = UDim2.new(0, 10, 0, 45)
+Status.BackgroundTransparency = 1
+Status.Text = "Target: None"
+Status.TextColor3 = Color3.fromRGB(200, 200, 200)
+Status.TextSize = 14
+Status.Font = Enum.Font.Gotham
+Status.Parent = Main
+
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(1, -20, 0, 40)
+Button.Position = UDim2.new(0, 10, 0, 75)
+Button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+Button.Text = "Huge OFF"
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.TextSize = 18
+Button.Font = Enum.Font.GothamBold
+Button.Parent = Main
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 10)
+ButtonCorner.Parent = Button
+
+local HugeButtonEnabled = false
+local OriginalSize
+local OriginalPosition
+
+local HugeButtonEnabled = false
+local OriginalSize
+local OriginalPosition
+
+Button.Text = "Huge OFF"
+Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+
+Button.MouseButton1Click:Connect(function()
+    local Join = Player.PlayerGui.MainGui.Panels.Bossbar.SkipButton
+
+    if not Join then
+        Status.Text = "SkipButton not found"
+        return
+    end
+
+    if not OriginalSize then
+        OriginalSize = Join.Size
+        OriginalPosition = Join.Position
+    end
+
+    HugeButtonEnabled = not HugeButtonEnabled
+
+    if HugeButtonEnabled then
+        Button.Text = "Huge ON"
+        Button.BackgroundColor3 = Color3.fromRGB(70, 255, 120)
+
+        Join.Size = UDim2.new(0, 10000, 0, 10000)
+        Join.Position = UDim2.new(0, 0, 0, 0)
+
+        Status.Text = "SkipButton Expanded"
+    else
+        Button.Text = "Huge OFF"
+        Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+
+        Join.Size = OriginalSize
+        Join.Position = OriginalPosition
+
+        Status.Text = "SkipButton Restored"
+    end
+end)
+
+local Credit = Instance.new("TextLabel")
+Credit.Size = UDim2.new(1, 0, 0, 15)
+Credit.Position = UDim2.new(0, 0, 1, -17)
+Credit.BackgroundTransparency = 1
+Credit.Text = "script by: darecxek"
+Credit.TextColor3 = Color3.fromRGB(150, 150, 150)
+Credit.TextSize = 10
+Credit.Font = Enum.Font.Gotham
+Credit.Parent = Main
+
+local Toggle = Instance.new("TextButton")
+Toggle.Size = UDim2.new(1, -20, 0, 40)
+Toggle.Position = UDim2.new(0, 10, 0, 125)
+Toggle.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+Toggle.Text = "OFF"
+Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+Toggle.TextSize = 18
+Toggle.Font = Enum.Font.GothamBold
+Toggle.Parent = Main
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 10)
+ToggleCorner.Parent = Toggle
+
+Toggle.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+
+    if Enabled then
+        Toggle.Text = "ON"
+        Toggle.BackgroundColor3 = Color3.fromRGB(70, 255, 120)
+    else
+        Toggle.Text = "OFF"
+        Toggle.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+        Status.Text = "Target: None"
+    end
+end)
+
+local Dragging = false
+local DragStart
+local StartPos
+
+Title.InputBegan:Connect(function(Input)
+    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = true
+        DragStart = Input.Position
+        StartPos = Main.Position
+    end
+end)
+
+Title.InputEnded:Connect(function(Input)
+    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(Input)
+    if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
+        local Delta = Input.Position - DragStart
+
+        Main.Position = UDim2.new(
+            StartPos.X.Scale,
+            StartPos.X.Offset + Delta.X,
+            StartPos.Y.Scale,
+            StartPos.Y.Offset + Delta.Y
+        )
+    end
+end)
+
+local function GetRoot()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    return Character:WaitForChild("HumanoidRootPart")
+end
+
+local function GetClosestCritter()
+    local Critters = workspace:FindFirstChild("Critters")
+
+    if not Critters then
+        return nil, nil, nil
+    end
+
+    local HRP = GetRoot()
+    local ClosestPart = nil
+    local ClosestDistance = math.huge
+    local ClosestName = nil
+
+    for _, Obj in ipairs(Critters:GetChildren()) do
+        local Part
+
+        if Obj:IsA("Model") then
+            Part = Obj.PrimaryPart or Obj:FindFirstChildWhichIsA("BasePart")
+        elseif Obj:IsA("BasePart") then
+            Part = Obj
+        end
+
+        if Part then
+            local Distance = (HRP.Position - Part.Position).Magnitude
+
+            if Distance < ClosestDistance then
+                ClosestDistance = Distance
+                ClosestPart = Part
+                ClosestName = Obj.Name
+            end
+        end
+    end
+
+    return ClosestPart, ClosestDistance, ClosestName
+end
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if Enabled then
+            local HRP = GetRoot()
+            local Target, Distance, CritterName = GetClosestCritter()
+
+            if Target and HRP then
+                Status.Text = "Target: " .. tostring(CritterName)
+
+                local Time = math.max(Distance / 17, 0.1)
+
+                local Tween = TweenService:Create(
+                    HRP,
+                    TweenInfo.new(Time, Enum.EasingStyle.Linear),
+                    {
+                        CFrame = CFrame.new(
+                            Target.Position.X,
+                            HRP.Position.Y,
+                            Target.Position.Z
+                        )
+                    }
+                )
+
+                Tween:Play()
+            end
+        end
+    end
+end)
