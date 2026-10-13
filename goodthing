@@ -3,7 +3,9 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
+
 local Enabled = false
+local AutoSkipEnabled = false
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "TweenerWeener"
@@ -13,11 +15,16 @@ pcall(function()
     ScreenGui.Parent = game.CoreGui
 end)
 
+if not ScreenGui.Parent then
+    ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+end
+
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 250, 0, 180)
-Main.Position = UDim2.new(0.5, -125, 0.5, -90)
+Main.Size = UDim2.fromOffset(250, 230)
+Main.Position = UDim2.new(0.5, -125, 0.5, -115)
 Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Main.BorderSizePixel = 0
+Main.Active = true
 Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
@@ -40,7 +47,7 @@ TitleCorner.Parent = Title
 
 local Status = Instance.new("TextLabel")
 Status.Size = UDim2.new(1, -20, 0, 20)
-Status.Position = UDim2.new(0, 10, 0, 45)
+Status.Position = UDim2.fromOffset(10, 40)
 Status.BackgroundTransparency = 1
 Status.Text = "Target: None"
 Status.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -48,69 +55,31 @@ Status.TextSize = 14
 Status.Font = Enum.Font.Gotham
 Status.Parent = Main
 
-local Button = Instance.new("TextButton")
-Button.Size = UDim2.new(1, -20, 0, 40)
-Button.Position = UDim2.new(0, 10, 0, 75)
-Button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
-Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-Button.Text = "Huge OFF"
-Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-Button.TextSize = 18
-Button.Font = Enum.Font.GothamBold
-Button.Parent = Main
+local function CreateToggle(text, y)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, -20, 0, 32)
+    Button.Position = UDim2.fromOffset(10, y)
+    Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    Button.BorderSizePixel = 0
+    Button.Text = text .. ": OFF"
+    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.TextSize = 13
+    Button.Font = Enum.Font.GothamBold
+    Button.Parent = Main
 
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0, 10)
-ButtonCorner.Parent = Button
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = Button
 
-local HugeButtonEnabled = false
-local OriginalSize
-local OriginalPosition
+    return Button
+end
 
-local HugeButtonEnabled = false
-local OriginalSize
-local OriginalPosition
-
-Button.Text = "Huge OFF"
-Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-
-Button.MouseButton1Click:Connect(function()
-    local Join = Player.PlayerGui.MainGui.Panels.Bossbar.SkipButton
-
-    if not Join then
-        Status.Text = "SkipButton not found"
-        return
-    end
-
-    if not OriginalSize then
-        OriginalSize = Join.Size
-        OriginalPosition = Join.Position
-    end
-
-    HugeButtonEnabled = not HugeButtonEnabled
-
-    if HugeButtonEnabled then
-        Button.Text = "Huge ON"
-        Button.BackgroundColor3 = Color3.fromRGB(70, 255, 120)
-
-        Join.Size = UDim2.new(0, 10000, 0, 10000)
-        Join.Position = UDim2.new(0, 0, 0, 0)
-
-        Status.Text = "SkipButton Expanded"
-    else
-        Button.Text = "Huge OFF"
-        Button.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-
-        Join.Size = OriginalSize
-        Join.Position = OriginalPosition
-
-        Status.Text = "SkipButton Restored"
-    end
-end)
+local AutoSkipButton = CreateToggle("Auto Skip", 65)
+local TweenButton = CreateToggle("Tweening", 103)
 
 local Credit = Instance.new("TextLabel")
 Credit.Size = UDim2.new(1, 0, 0, 15)
-Credit.Position = UDim2.new(0, 0, 1, -17)
+Credit.Position = UDim2.new(0, 0, 1, -18)
 Credit.BackgroundTransparency = 1
 Credit.Text = "script by: darecxek"
 Credit.TextColor3 = Color3.fromRGB(150, 150, 150)
@@ -118,86 +87,110 @@ Credit.TextSize = 10
 Credit.Font = Enum.Font.Gotham
 Credit.Parent = Main
 
-local Toggle = Instance.new("TextButton")
-Toggle.Size = UDim2.new(1, -20, 0, 40)
-Toggle.Position = UDim2.new(0, 10, 0, 125)
-Toggle.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-Toggle.Text = "OFF"
-Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-Toggle.TextSize = 18
-Toggle.Font = Enum.Font.GothamBold
-Toggle.Parent = Main
+local function UpdateButton(Button, Name, Value)
+    Button.Text = Name .. (Value and ": ON" or ": OFF")
+    Button.BackgroundColor3 = Value
+        and Color3.fromRGB(70, 180, 110)
+        or Color3.fromRGB(255, 70, 70)
+end
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 10)
-ToggleCorner.Parent = Toggle
+-- Auto Skip toggle
+AutoSkipButton.Activated:Connect(function()
+    AutoSkipEnabled = not AutoSkipEnabled
+    UpdateButton(AutoSkipButton, "Auto Skip", AutoSkipEnabled)
+end)
 
-Toggle.MouseButton1Click:Connect(function()
+-- Tweening toggle
+TweenButton.Activated:Connect(function()
     Enabled = not Enabled
+    UpdateButton(TweenButton, "Tweening", Enabled)
 
-    if Enabled then
-        Toggle.Text = "ON"
-        Toggle.BackgroundColor3 = Color3.fromRGB(70, 255, 120)
-    else
-        Toggle.Text = "OFF"
-        Toggle.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    if not Enabled then
         Status.Text = "Target: None"
     end
 end)
 
+-- Dragging
 local Dragging = false
 local DragStart
 local StartPos
 
 Title.InputBegan:Connect(function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if Input.UserInputType == Enum.UserInputType.MouseButton1
+        or Input.UserInputType == Enum.UserInputType.Touch then
+
         Dragging = true
         DragStart = Input.Position
         StartPos = Main.Position
     end
 end)
 
-Title.InputEnded:Connect(function(Input)
-    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+UserInputService.InputChanged:Connect(function(Input)
+    if Dragging then
+        if Input.UserInputType == Enum.UserInputType.MouseMovement
+            or Input.UserInputType == Enum.UserInputType.Touch then
+
+            local Delta = Input.Position - DragStart
+
+            Main.Position = UDim2.new(
+                StartPos.X.Scale,
+                StartPos.X.Offset + Delta.X,
+                StartPos.Y.Scale,
+                StartPos.Y.Offset + Delta.Y
+            )
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(Input)
+    if Input.UserInputType == Enum.UserInputType.MouseButton1
+        or Input.UserInputType == Enum.UserInputType.Touch then
+
         Dragging = false
     end
 end)
 
-UserInputService.InputChanged:Connect(function(Input)
-    if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
-        local Delta = Input.Position - DragStart
+-- Auto Skip packet loop
+task.spawn(function()
+    while ScreenGui.Parent do
+        if AutoSkipEnabled then
+            task.wait(0.1)
 
-        Main.Position = UDim2.new(
-            StartPos.X.Scale,
-            StartPos.X.Offset + Delta.X,
-            StartPos.Y.Scale,
-            StartPos.Y.Offset + Delta.Y
-        )
+            if AutoSkipEnabled then
+                -- Auto Skip packet handling removed.
+                -- Add your authorized skip implementation here.
+            end
+        else
+            task.wait(0.1)
+        end
     end
 end)
 
-local function GetRoot()
-    local Character = Player.Character or Player.CharacterAdded:Wait()
-    return Character:WaitForChild("HumanoidRootPart")
-end
-
+-- Find the closest critter
 local function GetClosestCritter()
     local Critters = workspace:FindFirstChild("Critters")
-
     if not Critters then
         return nil, nil, nil
     end
 
-    local HRP = GetRoot()
-    local ClosestPart = nil
+    local Character = Player.Character
+    local HRP = Character
+        and Character:FindFirstChild("HumanoidRootPart")
+
+    if not HRP then
+        return nil, nil, nil
+    end
+
+    local ClosestPart
     local ClosestDistance = math.huge
-    local ClosestName = nil
+    local ClosestName
 
     for _, Obj in ipairs(Critters:GetChildren()) do
         local Part
 
         if Obj:IsA("Model") then
-            Part = Obj.PrimaryPart or Obj:FindFirstChildWhichIsA("BasePart")
+            Part = Obj.PrimaryPart
+                or Obj:FindFirstChildWhichIsA("BasePart")
         elseif Obj:IsA("BasePart") then
             Part = Obj
         end
@@ -216,10 +209,16 @@ local function GetClosestCritter()
     return ClosestPart, ClosestDistance, ClosestName
 end
 
+-- Critter tweening loop
 task.spawn(function()
-    while task.wait(0.2) do
+    while ScreenGui.Parent do
+        task.wait(0.2)
+
         if Enabled then
-            local HRP = GetRoot()
+            local Character = Player.Character
+            local HRP = Character
+                and Character:FindFirstChild("HumanoidRootPart")
+
             local Target, Distance, CritterName = GetClosestCritter()
 
             if Target and HRP then
@@ -240,7 +239,11 @@ task.spawn(function()
                 )
 
                 Tween:Play()
+            else
+                Status.Text = "Target: None"
             end
+        else
+            Status.Text = "Target: None"
         end
     end
 end)
